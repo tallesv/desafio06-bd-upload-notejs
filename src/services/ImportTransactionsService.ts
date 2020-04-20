@@ -1,8 +1,11 @@
 import fs from 'fs';
 import csv from 'csv-parse';
 
+import { getCustomRepository } from 'typeorm';
 import Transaction from '../models/Transaction';
 import CreateTransactionService from './CreateTransactionService';
+import TransactionRepository from '../repositories/TransactionsRepository';
+import CategoriesRepository from '../repositories/CategoriesRepository';
 
 interface TransactionCSV {
   title: string;
@@ -13,6 +16,9 @@ interface TransactionCSV {
 
 class ImportTransactionsService {
   async execute(path: string): Promise<Transaction[]> {
+    const transactionRepository = getCustomRepository(TransactionRepository);
+    const categoryRepository = getCustomRepository(CategoriesRepository);
+
     const createTransaction = new CreateTransactionService();
     const transactions: TransactionCSV[] = [];
 
@@ -36,7 +42,7 @@ class ImportTransactionsService {
 
     const createdTransactions: Transaction[] = [];
 
-    await Promise.all(
+    /* await Promise.all(
       transactions.map(async t => {
         createdTransactions.push(
           await createTransaction.execute({
@@ -47,7 +53,22 @@ class ImportTransactionsService {
           }),
         );
       }),
-    );
+    ); */
+
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < transactions.length; i++) {
+      createdTransactions.push(
+        // eslint-disable-next-line no-await-in-loop
+        await createTransaction.execute({
+          title: transactions[i].title,
+          type: transactions[i].type,
+          value: transactions[i].value,
+          category_title: transactions[i].category,
+        }),
+      );
+    }
+
+    await fs.promises.unlink(path);
 
     return createdTransactions;
   }
