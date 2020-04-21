@@ -3,7 +3,11 @@ import {
   Column,
   PrimaryGeneratedColumn,
   CreateDateColumn,
+  ManyToMany,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+
 import Category from './Category';
 
 @Entity('transactions')
@@ -28,6 +32,10 @@ class Transaction {
 
   @CreateDateColumn()
   updated_at: Date;
+
+  @ManyToOne(() => Category, category => category.transaction, { eager: true })
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 }
 
 export default Transaction;
