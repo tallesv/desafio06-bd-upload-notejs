@@ -32,7 +32,10 @@ class CreateTransactionService {
 
       const balance = await transactionsRepository.getBalance();
 
-      if (type === 'outcome' && value > balance.income) {
+      if (
+        type === 'outcome' &&
+        Number(value) + Number(balance.outcome) > balance.income
+      ) {
         throw new AppError('insuficient income.', 400);
       }
 
